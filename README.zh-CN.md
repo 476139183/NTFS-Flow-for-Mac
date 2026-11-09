@@ -6,7 +6,7 @@
 
 **适用环境：macOS 14+ · Apple Silicon · SwiftUI · FUSE-T + ntfs-3g**
 
-[从源码构建](#从源码构建) · [常见问题](#常见问题) · [反馈问题](https://github.com/476139183/ntfs-flow/issues)
+[从源码构建](#从源码构建) · [常见问题](#常见问题) · [反馈问题](https://github.com/476139183/NTFS-Flow-for-Mac/issues)
 
 当前提供源码构建方式，本文不提供已发布的 App 或 DMG 下载。
 
@@ -30,8 +30,8 @@
 ## 从源码构建
 
 ```bash
-git clone https://github.com/476139183/ntfs-flow.git
-cd ntfs-flow
+git clone https://github.com/476139183/NTFS-Flow-for-Mac.git
+cd NTFS-Flow-for-Mac
 
 # 安装 FUSE-T 并从源码编译、安装 ntfs-3g，需要 Homebrew 和管理员授权。
 bash ntfs-setup.sh

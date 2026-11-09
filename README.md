@@ -6,7 +6,7 @@ Read and write Windows NTFS drives on your Mac. **NTFS Flow** is an open-source 
 
 **macOS 14+ · Apple Silicon · SwiftUI · FUSE-T + ntfs-3g**
 
-[Build from source](#build-from-source) · [FAQ](#frequently-asked-questions) · [Report an issue](https://github.com/476139183/ntfs-flow/issues) · [中文使用说明](README.zh-CN.md)
+[Build from source](#build-from-source) · [FAQ](#frequently-asked-questions) · [Report an issue](https://github.com/476139183/NTFS-Flow-for-Mac/issues) · [中文使用说明](README.zh-CN.md)
 
 <img src="NTFSManager/Resources/AppIcon.png" alt="NTFS Flow for Mac: NTFS external drive read and write utility for macOS" width="160">
 
@@ -37,8 +37,8 @@ NTFS Flow provides the management interface; FUSE-T and ntfs-3g provide filesyst
 Clone the repository:
 
 ```bash
-git clone https://github.com/476139183/ntfs-flow.git
-cd ntfs-flow
+git clone https://github.com/476139183/NTFS-Flow-for-Mac.git
+cd NTFS-Flow-for-Mac
 ```
 
 Install FUSE-T and build ntfs-3g. This step uses Homebrew and requests administrator approval:
