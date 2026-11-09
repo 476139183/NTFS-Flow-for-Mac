@@ -1,0 +1,114 @@
+#!/bin/bash
+# NTFS 管理器特权助手：以 root 运行，只做三件事，参数全部严格校验。
+#   ntfs-manager-helper mount   <diskXsY> [force]
+#   ntfs-manager-helper unmount </Volumes/名称>
+#   ntfs-manager-helper fix     <diskXsY>
+# 挂载点、挂载选项由本脚本决定，调用方无法指定，避免被用来挂到 /etc 等系统目录提权。
+set -u
+export PATH=/usr/bin:/bin:/usr/sbin:/sbin
+umask 022
+
+NTFS3G=/usr/local/bin/ntfs-3g
+NTFSFIX=/usr/local/bin/ntfsfix
+
+die() { echo "$*" >&2; exit 1; }
+
+[ "$(id -u)" = 0 ] || die "需要以 root 运行"
+
+# 被调用的二进制必须属于 root 且他人不可写，否则拒绝（防止被替换）
+check_bin() {
+    [ -x "$1" ] || die "未找到 $1，请先安装 ntfs-3g"
+    [ "$(stat -f %u "$1")" = 0 ] || die "$1 不属于 root，拒绝执行"
+    case "$(stat -f %Sp "$1")" in ?????w????|????????w?) die "$1 可被非 root 改写，拒绝执行" ;; esac
+}
+
+# 读 diskutil info 的 plist 字段（文本输出的字段名可能随语言变化，不可靠）
+dinfo() { diskutil info -plist "$1" 2>/dev/null | plutil -extract "$2" raw -o - - 2>/dev/null; }
+
+is_sys_mounted() { [ -n "$(dinfo "$1" MountPoint)" ]; }
+
+check_dev() {
+    [[ "$1" =~ ^disk[0-9]+(s[0-9]+)?$ ]] || die "非法设备名: $1"
+    diskutil info "$1" >/dev/null 2>&1 || die "设备不存在: $1"
+    [ "$(dinfo "$1" FilesystemType)" = ntfs ] || [ "$(dinfo "$1" Content)" = Windows_NTFS ] || die "$1 不是 NTFS 卷"
+}
+
+# 调用者（sudo 或 osascript 的发起用户）
+caller_ids() {
+    local uid="${SUDO_UID:-}" gid="${SUDO_GID:-}"
+    if [ -z "$uid" ] || [ "$uid" = 0 ]; then
+        uid=$(stat -f %u /dev/console); gid=$(stat -f %g /dev/console)
+    fi
+    [ "$uid" != 0 ] || die "无法确定当前用户"
+    echo "$uid $gid"
+}
+
+do_mount() {
+    local dev="$1" force="${2:-}"
+    check_dev "$dev"; check_bin "$NTFS3G"
+    pgrep -f "ntfs-3g /dev/$dev " >/dev/null && die "$dev 已被 ntfs-3g 挂载"
+
+    local label
+    label=$(dinfo "$dev" VolumeName | LC_ALL=C tr -d ',/:\000-\037\177' | sed 's/^ *//;s/ *$//')
+    [ -n "$label" ] || label="NTFS-$dev"
+
+    # 卸掉系统只读挂载，失败重试
+    for i in 1 2 3 4; do
+        is_sys_mounted "$dev" || break
+        if [ "$i" -le 2 ]; then diskutil unmount "/dev/$dev" >/dev/null 2>&1; else diskutil unmount force "/dev/$dev" >/dev/null 2>&1; fi
+        sleep 0.5
+    done
+    is_sys_mounted "$dev" && die "无法卸载系统只读挂载（可能有程序正在使用该盘）"
+
+    # 选挂载点：被占用或非空就换名
+    local mp=""
+    for name in "$label" "NTFS-$dev" "NTFS-$dev-$$"; do
+        local p="/Volumes/$name"
+        if [ ! -e "$p" ]; then mp="$p"; break; fi
+        if [ -d "$p" ] && [ ! -L "$p" ] && [ -z "$(ls -A "$p" 2>/dev/null)" ] && ! mount | grep -Fq " on $p ("; then mp="$p"; break; fi
+    done
+    [ -n "$mp" ] || die "找不到可用挂载点"
+
+    local ids; ids=$(caller_ids) || exit 1
+    read -r uid gid <<<"$ids"
+    local opts="local,allow_other,auto_xattr,noatime,big_writes,windows_names,uid=$uid,gid=$gid,volname=$label"
+    [ "$force" = "force" ] && opts="$opts,remove_hiberfile"
+
+    mkdir -p "$mp" || die "无法创建 $mp"
+    if "$NTFS3G" "/dev/$dev" "$mp" -o "$opts"; then
+        mdutil -i off "$mp" >/dev/null 2>&1
+        mkdir -p "$mp/.fseventsd" 2>/dev/null && touch "$mp/.fseventsd/no_log" 2>/dev/null
+        echo "$mp"
+    else
+        rc=$?
+        rmdir "$mp" 2>/dev/null
+        exit $rc
+    fi
+}
+
+do_unmount() {
+    local mp="$1"
+    [[ "$mp" =~ ^/Volumes/[^/]+$ ]] || die "只允许卸载 /Volumes 下的挂载点: $mp"
+    [[ "$mp" == *..* ]] && die "非法路径: $mp"
+    mount | grep -Fq " on $mp (" || { rmdir "$mp" 2>/dev/null; exit 0; }
+    umount "$mp" 2>/dev/null || diskutil unmount force "$mp" >/dev/null 2>&1 || umount -f "$mp" || die "卸载失败，可能有程序正在使用 $mp"
+    rmdir "$mp" 2>/dev/null
+    exit 0
+}
+
+do_fix() {
+    local dev="$1"
+    check_dev "$dev"; check_bin "$NTFSFIX"
+    is_sys_mounted "$dev" && die "请先卸载再修复"
+    pgrep -f "ntfs-3g /dev/$dev " >/dev/null && die "请先卸载再修复"
+    "$NTFSFIX" -d "/dev/$dev"
+}
+
+case "${1:-}" in
+    mount)   [ $# -ge 2 ] && [ $# -le 3 ] || die "用法: mount <diskXsY> [force]"
+             [ $# -eq 2 ] || [ "$3" = force ] || die "未知参数: $3"
+             do_mount "$2" "${3:-}" ;;
+    unmount) [ $# -eq 2 ] || die "用法: unmount </Volumes/名称>"; do_unmount "$2" ;;
+    fix)     [ $# -eq 2 ] || die "用法: fix <diskXsY>"; do_fix "$2" ;;
+    *)       die "用法: ntfs-manager-helper mount|unmount|fix ..." ;;
+esac
