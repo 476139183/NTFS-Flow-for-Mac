@@ -1,4 +1,6 @@
-# NTFS 管理器（macOS 原生应用）
+# NTFS Flow for Mac — 开发与构建说明
+
+[English](../README.md) · [简体中文](../README.zh-CN.md)
 
 Swift + SwiftUI 写的 NTFS 读写管理工具，底层用 FUSE-T + ntfs-3g（先用上级目录的 `ntfs-setup.sh` 装好）。
 设计参考了 ntfs-mounter-macos、Nigate、ntfs-automount-rw。
@@ -14,12 +16,12 @@ Swift + SwiftUI 写的 NTFS 读写管理工具，底层用 FUSE-T + ntfs-3g（�
 
 ## 构建
 ```bash
-bash build-app.sh            # 生成 build/NTFS管理器.app
+bash build-app.sh            # 生成 build/NTFS Flow.app
 bash build-app.sh install    # 并安装到 /Applications
 ```
 ## 打包分发
 ```bash
-bash build-dmg.sh            # 生成 dist/NTFS管理器-<版本>.dmg，可直接发给别人
+bash build-dmg.sh            # 生成 dist/NTFS Flow-<版本>.dmg，可直接发给别人
 ```
 DMG 内含 App、「应用程序」快捷方式和 `使用说明.txt`。App 内置本机编译的 ntfs-3g（仅 Apple Silicon），
 对方首次打开后点「一键安装驱动」：从官方下载 FUSE-T（校验 Apple 公证 + 官方 Team ID）并安装内置 ntfs-3g，无需 Homebrew、无需编译。
@@ -33,7 +35,7 @@ DMG 内含 App、「应用程序」快捷方式和 `使用说明.txt`。App 内�
 例如 `CODE_SIGN_IDENTITY='Developer ID Application: …' bash build-app.sh`。
 重新临时签名后，macOS 可能要求重新授权文件访问；固定 Bundle ID 本身不能保证授权延续。
 
-命令行排查：`build/NTFS管理器.app/Contents/MacOS/NTFSManager --list`
+命令行排查：`"build/NTFS Flow.app/Contents/MacOS/NTFSManager" --list`
 
 ## 代码结构与回归测试
 
@@ -56,7 +58,7 @@ DMG 内含 App、「应用程序」快捷方式和 `使用说明.txt`。App 内�
 
 FUSE-T 的读写驱动通过本机 NFS 提供挂载，macOS 因而可能显示“访问网络宗卷”提示。
 首次打开磁盘时允许即可；若之前拒绝，可到 系统设置 › 隐私与安全性 › 文件与文件夹，
-开启「NTFS 管理器」的网络宗卷访问。该权限与管理员授权、完全磁盘访问权限是不同的权限。
+开启「NTFS Flow」的网络宗卷访问。该权限与管理员授权、完全磁盘访问权限是不同的权限。
 
 ## 免密码挂载
 勾选窗口底部「免密码挂载」，输一次密码后，挂载/卸载/修复都不再弹密码框。它做了两件事：
@@ -71,5 +73,5 @@ FUSE-T 的读写驱动通过本机 NFS 提供挂载，macOS 因而可能显示�
 
 ## 注意
 - 未开启免密时，挂载/卸载需要 root，会弹系统管理员密码框。
-- 若报 “Operation not permitted”：系统设置 › 隐私与安全性 › 完全磁盘访问权限，加入「NTFS 管理器」。重新打包后签名会变，可能要重新勾选。
+- 若报 “Operation not permitted”：系统设置 › 隐私与安全性 › 完全磁盘访问权限，加入「NTFS Flow」。重新打包后签名会变，可能要重新勾选。
 - 首次使用要在 系统设置 › 隐私与安全性 里放行 fuse-t。

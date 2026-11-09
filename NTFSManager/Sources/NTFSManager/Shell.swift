@@ -109,7 +109,7 @@ enum Shell {
         let escaped = wrapped
             .replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: "\"", with: "\\\"")
-        let apple = "do shell script \"\(escaped)\" with administrator privileges with prompt \"NTFS 管理器需要管理员权限来挂载或卸载磁盘\""
+        let apple = "do shell script \"\(escaped)\" with administrator privileges with prompt \"NTFS Flow需要管理员权限来挂载或卸载磁盘\""
         let result = run("/usr/bin/osascript", ["-e", apple], timeout: nil)
         let output = (try? String(contentsOf: log, encoding: .utf8)) ?? ""
         if !result.ok {

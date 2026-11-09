@@ -1,10 +1,10 @@
 #!/bin/bash
-# 编译并打包成 NTFS管理器.app，可选安装到 /Applications
+# 编译并打包成 NTFS Flow.app，可选安装到 /Applications
 #   bash build-app.sh            # 只打包到 ./build
 #   bash build-app.sh install    # 打包并复制到 /Applications
 set -e
 cd "$(dirname "$0")"
-APP="build/NTFS管理器.app"
+APP="build/NTFS Flow.app"
 
 # 受限构建环境可用 NTFS_DEBUG_INFO_FORMAT=none 跳过 dSYM 生成。
 swift build -c release --disable-sandbox -debug-info-format "${NTFS_DEBUG_INFO_FORMAT:-dwarf}"
@@ -35,8 +35,8 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>CFBundleName</key><string>NTFS管理器</string>
-    <key>CFBundleDisplayName</key><string>NTFS 管理器</string>
+    <key>CFBundleName</key><string>NTFS Flow</string>
+    <key>CFBundleDisplayName</key><string>NTFS Flow</string>
     <key>CFBundleIdentifier</key><string>local.ntfs-manager</string>
     <key>CFBundleExecutable</key><string>NTFSManager</string>
     <key>CFBundleIconFile</key><string>AppIcon.icns</string>
@@ -58,7 +58,7 @@ codesign --force --deep --sign "${CODE_SIGN_IDENTITY:--}" "$APP"
 echo "✅ 已生成 $APP"
 
 if [ "$1" = "install" ]; then
-    rm -rf "/Applications/NTFS管理器.app"
+    rm -rf "/Applications/NTFS Flow.app"
     cp -R "$APP" /Applications/
-    echo "✅ 已安装到 /Applications/NTFS管理器.app"
+    echo "✅ 已安装到 /Applications/NTFS Flow.app"
 fi

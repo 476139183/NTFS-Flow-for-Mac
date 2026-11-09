@@ -7,7 +7,7 @@ struct NTFSManagerApp: App {
     @State private var store = DiskStore()
 
     var body: some Scene {
-        Window("NTFS 管理器", id: "main") {
+        Window("NTFS Flow", id: "main") {
             ContentView()
                 .environment(store)
         }

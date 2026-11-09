@@ -1,104 +1,165 @@
-# NTFS Manager · NTFS 管理器
+# NTFS Flow for Mac — NTFS Read & Write on macOS
 
-用于 macOS 的原生 NTFS 磁盘管理工具。使用 Swift / SwiftUI 构建，结合 FUSE-T 和 ntfs-3g，为 Windows 格式的外置硬盘提供读写挂载、卸载和安全弹出功能。
+**English** · [简体中文](README.zh-CN.md)
 
-<img src="NTFSManager/Resources/AppIcon.png" alt="NTFS Manager 图标" width="160">
+Read and write Windows NTFS drives on your Mac. **NTFS Flow** is an open-source macOS disk manager with a native SwiftUI interface and menu bar controls, powered by FUSE-T and ntfs-3g.
 
-## 功能
+**macOS 14+ · Apple Silicon · SwiftUI · FUSE-T + ntfs-3g**
 
-- 自动发现 NTFS 磁盘，显示挂载状态和容量，响应磁盘插拔。
-- 读写挂载、恢复系统只读挂载、卸载、安全弹出。
-- 菜单栏常驻，支持批量挂载和弹出。
-- 可选自动挂载、登录时启动和免密码挂载助手。
-- Windows 休眠状态提示、可选强制挂载和脏卷标记修复。
-- 提供命令行管理、驱动安装和测试脚本。
+[Build from source](#build-from-source) · [FAQ](#frequently-asked-questions) · [Report an issue](https://github.com/476139183/ntfs-flow/issues) · [中文使用说明](README.zh-CN.md)
 
-## 系统要求
+<img src="NTFSManager/Resources/AppIcon.png" alt="NTFS Flow for Mac: NTFS external drive read and write utility for macOS" width="160">
 
-- 原生应用：macOS 14 或更新版本，Xcode Command Line Tools（Swift 5.9 或更新版本）。
-- 驱动构建：Homebrew、FUSE-T 和 ntfs-3g；安装驱动及挂载操作需要管理员权限。
-- 当前应用内的驱动安装脚本仅支持 Apple Silicon。Intel 使用方式尚未验证。
+## What you can do
 
-## 从源码构建
+- **Mount NTFS drives for read and write access** in Finder.
+- Detect connected NTFS disks and display mount status and capacity.
+- Unmount, return to macOS read-only mounting, or safely eject a drive.
+- Manage drives from the menu bar, including bulk mount and eject actions.
+- Optionally enable automatic mounting, launch at login, and a passwordless mount helper.
+- Identify Windows hibernation errors, with explicit recovery options.
+- Use companion shell scripts for command-line disk management and driver setup.
+
+NTFS Flow provides the management interface; FUSE-T and ntfs-3g provide filesystem access. This repository contains application source, scripts, and icon assets. The instructions below build the app locally; they do not require a published App or DMG download.
+
+## Requirements
+
+| Component | Requirement |
+| --- | --- |
+| macOS | macOS 14 or later for the native app |
+| Mac | Apple Silicon for the bundled-driver installer; the full Intel workflow is unverified |
+| Build tools | Xcode Command Line Tools with Swift 5.9 or later |
+| Driver setup | Homebrew, FUSE-T, and ntfs-3g |
+| Permissions | Administrator approval for driver installation and privileged disk operations |
+
+## Build from source
+
+Clone the repository:
 
 ```bash
-git clone https://github.com/476139183/ntfs-manager.git
-cd ntfs-manager
+git clone https://github.com/476139183/ntfs-flow.git
+cd ntfs-flow
+```
 
-# 安装 FUSE-T 并从源码编译、安装 ntfs-3g，需要 Homebrew 和管理员授权。
+Install FUSE-T and build ntfs-3g. This step uses Homebrew and requests administrator approval:
+
+```bash
 bash ntfs-setup.sh
+```
 
-# 构建应用；产物为 NTFSManager/build/NTFS管理器.app。
+Build the macOS application:
+
+```bash
 cd NTFSManager
 bash build-app.sh
 ```
 
-安装到「应用程序」：
+The app is created at `NTFSManager/build/NTFS Flow.app`, relative to the repository root. To build and install it in Applications:
 
 ```bash
 bash build-app.sh install
 ```
 
-打包 DMG：
+The default build is ad-hoc signed. macOS may require you to allow the app in **System Settings → Privacy & Security** before opening it. See the [build and permissions guide (Chinese)](NTFSManager/README.md) for signing options.
 
-```bash
-bash build-dmg.sh
-```
+## Read and write an NTFS drive
 
-DMG 生成在 `NTFSManager/dist/`。默认使用临时签名，首次启动可能需要在「系统设置 → 隐私与安全性」允许打开。签名和权限配置见 [应用文档](NTFSManager/README.md)。
+1. Open **NTFS Flow** and connect your NTFS external hard drive, SSD, or USB drive.
+2. Select the drive and choose **读写挂载** (mount read/write).
+3. Allow the requested macOS disk or network-volume permissions. FUSE-T exposes the local disk through a local NFS mount.
+4. Open the mounted volume in Finder and copy your files.
+5. Use **安全弹出** (safely eject) before disconnecting the drive.
 
-## 使用
+The current application interface is in Chinese. English labels here describe the corresponding controls.
 
-打开应用，插入 NTFS 磁盘后选择「读写挂载」，使用结束后点击安全弹出。首次使用时根据系统提示授权磁盘或网络宗卷访问；FUSE-T 通过本机 NFS 提供挂载。
-
-命令行管理可在仓库根目录运行：
+For the terminal interface, run this command from the repository root:
 
 ```bash
 bash ntfs-manager.sh
 ```
 
-更多说明见 [应用 README](NTFSManager/README.md) 和 [使用说明](NTFSManager/使用说明.txt)。
+## Frequently asked questions
 
-## 验证
+### Why can my Mac read an NTFS drive but not write to it?
 
-不接入外置硬盘即可运行单元测试：
+The built-in macOS NTFS mount is normally read-only. NTFS Flow uses FUSE-T and ntfs-3g to provide read/write mounting. You must install these drivers; building the Swift app alone does not install them.
+
+### Is NTFS Flow a standalone NTFS driver?
+
+It is a native macOS disk management app. It discovers volumes and coordinates mounting, unmounting, and permissions. Filesystem access comes from FUSE-T and ntfs-3g.
+
+### Does it support Apple Silicon and Intel Macs?
+
+The app requires macOS 14 or later. The bundled-driver installer supports Apple Silicon Macs. The complete Intel installation and mounting workflow has not been verified.
+
+### Do I need to disable System Integrity Protection (SIP)?
+
+The installation steps provided by this project do not require disabling SIP. Administrator approval and macOS privacy permissions may still be needed.
+
+### Why does macOS ask for access to network volumes?
+
+FUSE-T provides the mounted filesystem through local NFS. Check **System Settings → Privacy & Security → Files & Folders** if you previously denied access to network volumes. See the [permissions guide (Chinese)](NTFSManager/README.md) for more details.
+
+### What if Windows hibernation prevents mounting?
+
+Reconnect the disk to Windows, fully shut down Windows, and check the filesystem there. Force mounting removes the hibernation file and may discard an unsaved Windows session. Back up important data before recovery operations.
+
+### Which parts are open source?
+
+The code, scripts, and assets in this repository use the MIT license. The separately installed FUSE-T and ntfs-3g components retain their own upstream licenses. Check those terms for your use case, including commercial use or distribution.
+
+## Development and tests
+
+Run the unit tests without connecting an external drive:
 
 ```bash
 cd NTFSManager
 swift test --disable-sandbox
 ```
 
-测试覆盖错误分类、整盘互斥、磁盘扫描和挂载解析、命令执行、超时以及图标解码，不会挂载、修复或写入外置硬盘。
+The tests cover disk error classification, per-device operation locking, disk scanning, mount resolution, subprocess execution, timeouts, and icon decoding. They do not mount, repair, or write to external drives.
 
-`ntfs-test.sh` 是另行手动运行的磁盘镜像读写测试，会向指定镜像写入数据；仅用于可丢弃的 NTFS 测试镜像：
+`ntfs-test.sh` is a separate, manual read/write benchmark that **writes to the supplied disk image**. Use a disposable NTFS test image only:
 
 ```bash
-sudo bash ntfs-test.sh /绝对路径/测试镜像.img
+sudo bash ntfs-test.sh /absolute/path/to/test-image.img
 ```
 
-## 项目结构
+## Package a DMG
 
-| 路径 | 用途 |
+From `NTFSManager/`:
+
+```bash
+bash build-dmg.sh
+```
+
+The disk image is written to `NTFSManager/dist/`. The packaging script copies locally installed ntfs-3g binaries into the app. Review the upstream license and corresponding-source distribution requirements before sharing binary builds.
+
+## Project structure
+
+| Path | Purpose |
 | --- | --- |
-| `NTFSManager/Sources/` | SwiftUI 界面、磁盘扫描、挂载和权限处理 |
-| `NTFSManager/Tests/` | 单元测试 |
-| `NTFSManager/Resources/` | 图标、特权助手和驱动安装脚本 |
-| `ntfs-manager.sh` | 命令行磁盘管理 |
-| `ntfs-setup.sh` | 驱动安装和编译 |
-| `ntfs-cleanup.sh` | 清理其他 NTFS 工具，使用前请检查脚本内容 |
-| `ntfs-test.sh` | 手动镜像读写和速度测试 |
+| `NTFSManager/Sources/` | SwiftUI app, disk discovery, mounting, and permissions |
+| `NTFSManager/Tests/` | Unit tests |
+| `NTFSManager/Resources/` | App icon, privileged helper, and driver installer |
+| `ntfs-manager.sh` | Interactive command-line disk manager |
+| `ntfs-setup.sh` | Driver installation and compilation |
+| `ntfs-cleanup.sh` | Cleanup of other NTFS tools; inspect before running |
+| `ntfs-test.sh` | Manual disk-image read/write benchmark |
 
-## 数据安全
+## Data safety
 
-操作磁盘前请保留重要数据备份。Windows 休眠或快速启动可能阻止读写挂载，优先回到 Windows 完整关机并检查磁盘。强制挂载会删除休眠文件，可能丢失未保存的 Windows 会话。请在拔出磁盘前安全弹出。
+Back up important files before changing disk mount state or repairing a volume. Prefer a full Windows shutdown and filesystem check when a disk is hibernated or marked dirty. Safely eject drives before unplugging them.
 
-## 许可证与致谢
+## License and acknowledgements
 
-本仓库的应用代码、脚本和资源采用 [MIT License](LICENSE)。第三方驱动遵循各自许可证，不因本项目采用 MIT 而改变：
+Application code, scripts, and assets are available under the [MIT License](LICENSE). Third-party dependencies retain their own licenses:
 
-- [ntfs-3g（macos-fuse-t 分支）](https://github.com/macos-fuse-t/ntfs-3g)：以其上游许可文件为准。
-- [FUSE-T](https://github.com/macos-fuse-t/fuse-t)：以其上游许可条款为准，安装时从官方下载安装包。
+- [ntfs-3g, macos-fuse-t fork](https://github.com/macos-fuse-t/ntfs-3g)
+- [FUSE-T](https://github.com/macos-fuse-t/fuse-t)
 
-仓库不包含预编译的第三方驱动。`build-app.sh` 会将本机的 ntfs-3g 二进制复制到应用；分发此类构建产物时请一并检查第三方许可和对应源码的分发要求。
+No precompiled third-party drivers are stored in this repository. FUSE-T is downloaded separately by the driver installer.
 
-设计参考了 [ntfs-mounter-macos](https://github.com/ArrivaRUS/ntfs-mounter-macos)、[Nigate](https://github.com/hoochanlon/Free-NTFS-for-Mac) 和 [ntfs-automount-rw](https://github.com/ggalancs/ntfs-automount-rw)。欢迎通过 Issues 反馈问题或提交 Pull Request。
+Design references: [ntfs-mounter-macos](https://github.com/ArrivaRUS/ntfs-mounter-macos), [Nigate](https://github.com/hoochanlon/Free-NTFS-for-Mac), and [ntfs-automount-rw](https://github.com/ggalancs/ntfs-automount-rw).
+
+Bug reports and pull requests are welcome. When reporting a problem, include your macOS version, Mac architecture, driver versions, and the error message. Remove private volume names and file paths from logs before posting.

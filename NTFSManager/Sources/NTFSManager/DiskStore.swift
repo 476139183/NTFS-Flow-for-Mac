@@ -196,7 +196,7 @@ final class DiskStore {
                 case .success:
                     self.showToast("驱动安装完成")
                     self.alert = AlertInfo(title: "驱动安装完成",
-                                           message: "如果之后挂载时提示权限问题：到 系统设置 › 隐私与安全性，放行 fuse-t，并在「完全磁盘访问权限」里加入 NTFS 管理器。")
+                                           message: "如果之后挂载时提示权限问题：到 系统设置 › 隐私与安全性，放行 fuse-t，并在「完全磁盘访问权限」里加入 NTFS Flow。")
                 case .failure(ShellError.cancelled):
                     break
                 case .failure(let error):
@@ -231,7 +231,7 @@ final class DiskStore {
     func open(_ disk: NTFSDisk) {
         guard let mp = disk.mountPoint else { return }
         if !NSWorkspace.shared.open(URL(fileURLWithPath: mp)) {
-            alert = AlertInfo(title: "无法打开磁盘", message: "请在 系统设置 › 隐私与安全性 › 文件与文件夹 中允许「NTFS 管理器」访问网络宗卷，然后重试。")
+            alert = AlertInfo(title: "无法打开磁盘", message: "请在 系统设置 › 隐私与安全性 › 文件与文件夹 中允许「NTFS Flow」访问网络宗卷，然后重试。")
         }
     }
 

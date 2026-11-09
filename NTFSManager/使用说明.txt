@@ -1,14 +1,14 @@
-NTFS 管理器 —— 让 Mac 读写 Windows（NTFS）格式的硬盘、U 盘
+NTFS Flow —— 让 Mac 读写 Windows（NTFS）格式的硬盘、U 盘
 
 【系统要求】
 Apple Silicon（M1/M2/M3/M4…）芯片的 Mac，macOS 14 或更新。
 
 【安装】
-1. 把「NTFS管理器」拖到「应用程序」文件夹。
+1. 把「NTFS Flow」拖到「应用程序」文件夹。
 2. 第一次打开会提示“无法验证开发者”（这个 App 没有付费签名，不是病毒）：
    打开 系统设置 › 隐私与安全性，拉到底部，点「仍要打开」，再输入密码确认。
    或者在「终端」里运行一次：
-     xattr -dr com.apple.quarantine /Applications/NTFS管理器.app
+     xattr -dr com.apple.quarantine "/Applications/NTFS Flow.app"
 3. 打开后窗口顶部若提示“还没安装 NTFS 读写驱动”，点「一键安装驱动」，
    输入一次电脑密码，等待完成（需要联网，会从官网下载 FUSE-T）。
 4. 系统可能提示放行 fuse-t：到 系统设置 › 隐私与安全性 里允许。
@@ -22,14 +22,14 @@ Apple Silicon（M1/M2/M3/M4…）芯片的 Mac，macOS 14 或更新。
 
 【常见问题】
 · 提示 “Operation not permitted”：
-  系统设置 › 隐私与安全性 › 完全磁盘访问权限，点 + 加入「NTFS管理器」并打开开关。
+  系统设置 › 隐私与安全性 › 完全磁盘访问权限，点 + 加入「NTFS Flow」并打开开关。
 · 提示 Windows 休眠/快速启动：
   最好把盘插回 Windows，按住 Shift 点「关机」彻底关机后再拿来用；
   或在 App 里选「强制挂载」（会丢弃 Windows 里未保存的休眠内容）。
 · 拷贝大文件速度约 20~60 MB/s，属正常现象。
 
 【卸载】
-1. App 里取消「免密码挂载」，然后删除 /Applications/NTFS管理器.app。
+1. App 里取消「免密码挂载」，然后删除 /Applications/NTFS Flow.app。
 2. 如需同时删除驱动，在终端运行：
      sudo rm -f /usr/local/bin/ntfs-3g /usr/local/bin/ntfsfix /usr/local/lib/libntfs-3g*.dylib
      sudo "/Library/Application Support/fuse-t/uninstall.sh"

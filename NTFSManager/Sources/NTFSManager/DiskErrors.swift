@@ -6,7 +6,7 @@ enum DiskErrorClassifier {
         guard case ShellError.failed(let raw) = error else { return error }
         let lower = raw.lowercased()
         if lower.contains("operation not permitted") || lower.contains("permission denied") {
-            return ShellError.failed("macOS 拦截了磁盘访问。请检查 系统设置 › 隐私与安全性：在「文件与文件夹」中允许网络宗卷访问；若原始磁盘设备访问被拒绝，再为「NTFS 管理器」开启「完全磁盘访问权限」。\n\n\(raw)")
+            return ShellError.failed("macOS 拦截了磁盘访问。请检查 系统设置 › 隐私与安全性：在「文件与文件夹」中允许网络宗卷访问；若原始磁盘设备访问被拒绝，再为「NTFS Flow」开启「完全磁盘访问权限」。\n\n\(raw)")
         }
         if lower.contains("input/output error") || lower.contains("i/o error") {
             return ShellError.failed("磁盘读写发生 I/O 错误，请检查连接线、供电和磁盘状态。\n\n\(raw)")
